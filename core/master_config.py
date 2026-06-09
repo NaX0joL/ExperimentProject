@@ -16,6 +16,7 @@ class MasterConfig:
     saving_config: SavingConfig
     trainer_config: TrainerConfig
     
+    @classmethod
     def default(self):
         master_config = self(
             model_config = ModelConfig.default(),

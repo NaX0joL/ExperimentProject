@@ -55,9 +55,9 @@ class ModelConfig(ABSTRACT_Config):
     @classmethod
     def default(self):
         proposed_model_config = self(
-            seq_len = 500,
-            pred_len = 2,
-            patch_len = 25,
+            seq_len = 1000,
+            pred_len = 1000,
+            patch_len = 50,
             stride = 1,
             
             e_layers_num = 1,

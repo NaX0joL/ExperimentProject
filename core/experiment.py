@@ -65,5 +65,5 @@ class Experiment():
         return
     
     def _reload_experiment_state(self) -> None:
-        self.experiment_state = ExperimentStateFactory.create(self.master_config)
+        self.experiment_state = ExperimentStateFactory().create(self.master_config)
         return

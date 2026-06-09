@@ -18,16 +18,16 @@ class DatasetConfig:
     
     def __post_init__(self) -> None:
         if self.raw_getter_config is None:
-            self.raw_getter_config = DATASET_REGISTRY[self.dataset_name].config_class
+            self.raw_getter_config = DATASET_REGISTRY[self.dataset_name].config_class.default()
         return
  
     @classmethod
     def default(self):
-        dataset_name = "UCR_Classification"
+        dataset_name = "UCR_Anomaly_Detection"
         return self(
             batch_size = 16,
             shuffle = True,
             drop_last = False,
             dataset_name = dataset_name,
-            raw_getter_config = DATASET_REGISTRY[dataset_name].config_class,
+            raw_getter_config = DATASET_REGISTRY[dataset_name].config_class.default(),
         )

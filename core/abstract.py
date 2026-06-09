@@ -50,6 +50,6 @@ class ABSTRACT_Loss(ABC):
     def forward(self):
         pass
     
-    @abstractmethod
-    def set_criterion(self):
-        pass
+    # @abstractmethod
+    # def set_criterion(self):
+    #     pass
