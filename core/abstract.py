@@ -9,7 +9,7 @@ class ABSTRACT_Config(ABC):
 
 
 
-class ABSTRACT_ArchitectureControl(ABC):
+class ABSTRACT_ModelControl(ABC):
     @abstractmethod
     def get_model(self):
         pass

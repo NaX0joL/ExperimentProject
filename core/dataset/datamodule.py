@@ -3,7 +3,7 @@ import pandas as pd
 
 from torch.utils.data import DataLoader
 
-from .REGISTRY import DATASET_REGISTRY
+from .registry import DATASET_REGISTRY
 from .dataset import ExperimentDataset
 from .dataset_config import DatasetConfig
 

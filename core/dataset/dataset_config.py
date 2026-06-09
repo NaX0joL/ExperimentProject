@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from core.abstract import ABSTRACT_RawGetter
 
-from .REGISTRY import DATASET_REGISTRY
+from .registry import DATASET_REGISTRY
 
 
 
