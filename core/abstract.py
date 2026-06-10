@@ -53,3 +53,20 @@ class ABSTRACT_Loss(ABC):
     # @abstractmethod
     # def set_criterion(self):
     #     pass
+
+
+
+class ABSTRACT_metric(ABC):
+    NAME: str
+    
+    @abstractmethod
+    def reset(self):
+        pass
+    
+    @abstractmethod
+    def accumulate(self):
+        pass
+    
+    @abstractmethod
+    def calculate(self):
+        pass

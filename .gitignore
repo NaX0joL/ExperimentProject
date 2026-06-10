@@ -13,9 +13,11 @@ wheels/
 .venv
 
 # experiment output
-**savefolder/
+mpkg-*/
 *.pth
 
 # datasets
-**/core/dataset/data/**
+**/core/dataset/data/*/raw/
+**/core/dataset/data/*/plot/
 *.csv
+*.png
