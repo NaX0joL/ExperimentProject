@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from dataclasses import dataclass
 from functools import wraps
 
@@ -14,7 +15,7 @@ from modules.device_resolve import get_model_device
 
 
 
-CHECKPOINT_PATH = "core/savefolder/checkpoint"
+CHECKPOINT_PATH = Path("savefolder/checkpoint")
 
 
 

@@ -53,6 +53,7 @@ class Trainer(ABSTRACT_Trainer):
     
     def fit(self, timer=False) -> None:
         self._reset_state()
+        self._relink_state_to_services()
         self.checkpoint_manager.reset()
         self.progress_display.start()
         
@@ -71,11 +72,17 @@ class Trainer(ABSTRACT_Trainer):
             self.checkpoint_manager.save()
             self.progress_display.epoch_update()
         
+        self._sync_loss_log()
         self.checkpoint_manager.load_best()
         self.progress_display.finish()
         return
     
     ### --- private functions ---
+    
+    def _set_model_device(self) -> None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.experiment_state.model.to(device)
+        return
     
     def _init_components(self) -> None:
         self.trainer_components = TrainerComponentsFactory().create(self.experiment_state)
@@ -85,7 +92,13 @@ class Trainer(ABSTRACT_Trainer):
         self.trainer_state = TrainerStateFactory.create(self.experiment_state)
         return
     
-    def _set_model_device(self) -> None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.experiment_state.model.to(device)
+    def _relink_state_to_services(self) -> None:
+        self.epoch_processor.trainer_state = self.trainer_state
+        self.checkpoint_manager.trainer_state = self.trainer_state
+        self.progress_display.trainer_state = self.trainer_state
+        return
+    
+    def _sync_loss_log(self) -> None:
+        self.experiment_state.loss_log["train"] = self.trainer_state.train_loss
+        self.experiment_state.loss_log["validation"] = self.trainer_state.validation_loss
         return

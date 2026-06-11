@@ -3,6 +3,7 @@ from torch import nn, Tensor
 from torch.utils.data import DataLoader
 
 from core.abstract import ABSTRACT_metric
+from core.schema import ExperimentState
 from core.dataset.datamodule import DataModule
 from modules.tensor_normalization import normalize_tensor
 from modules.device_resolve import get_model_device
@@ -14,19 +15,23 @@ from .registry import REGRESSION_METRICS, CLASSIFICATION_METRICS
 
 class MetricsCalculator():
     
-    def __init__(self, metrics_config:MetricsConfig, model:nn.Module, datamodule:DataModule) -> None:
-        self.metrics_config = metrics_config
-        self.model = model
-        self.datamodule = datamodule
+    def __init__(self, experiment_state:ExperimentState) -> None:
+        self.experiment_state = experiment_state
         
-        self.device = get_model_device(model)
-        self.used_dataloader = self._get_used_dataloader(datamodule)
+        self.metrics_config = experiment_state.master_config.metrics_config
+        self.model = experiment_state.model
+        self.datamodule = experiment_state.datamodule
+        self.metrics_result = experiment_state.metrics_result
+        
+        self.device = get_model_device(self.model)
+        self.used_dataloader = self._get_used_dataloader(self.datamodule)
         self.metric_calculators = self._get_metric_calculators()
+        self.metrics_result = {}
         return
     
     ### public functions
     
-    def calculate(self) -> dict[str, dict]:
+    def calculate(self) -> None:
         accumulator = Accumulator(
             calculators = self.metric_calculators,
             tolerance = self.metrics_config.tolerance,
@@ -43,8 +48,11 @@ class MetricsCalculator():
                 
                 accumulator.accumulate(output, label)
         
-        result = accumulator.calculate()
-        return result
+        self.experiment_state.metrics_result = accumulator.calculate()
+        return
+    
+    def get_metrics_result(self) -> dict[str, dict]:
+        return self.metrics_result
     
     ### private functions
     
