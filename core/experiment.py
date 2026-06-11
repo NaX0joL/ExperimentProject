@@ -9,6 +9,7 @@ import torch
 from torch import nn, Tensor
 
 from modules.device_resolve import get_model_device
+from modules.savefolder import create_savefolder
 from core.trainer.trainer import Trainer
 from core.metrics.metrics import MetricsCalculator
 from core.storage.save import SaveService
@@ -34,6 +35,8 @@ class Experiment():
     ### public functions
     
     def save(self, path:Path=None) -> None:
+        create_savefolder()
+        
         save_service = SaveService(self.experiment_state)
         save_service.put_in_marker(
             experiment_id = self.experiment_id,
@@ -50,6 +53,8 @@ class Experiment():
         return
     
     def train_model(self) -> nn.Module:
+        create_savefolder()
+        
         trainer = Trainer(self.experiment_state)
         trainer.fit()
         return trainer.get_model()
