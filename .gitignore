@@ -13,6 +13,7 @@ wheels/
 .venv
 
 # experiment output
+savefolder/*
 mpkg-*/
 *.pth
 

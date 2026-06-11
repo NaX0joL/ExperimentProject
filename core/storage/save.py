@@ -25,23 +25,32 @@ NUM_PLOT = 40
 
 class SaveService():
     
-    def __init__(self, experiment_state:ExperimentState, init_content:dict[str, any]):
+    def __init__(self, experiment_state:ExperimentState):
         self.experiment_state = experiment_state
-        self.init_content = init_content
         return
     
     ### public functions
     
-    def save(self, path:Path=None) -> None:
+    def put_in_marker(self, **content:any) -> None:
+        self.marker_content = content
+        return
+    
+    def save(self, path:Path=None, verbose:bool=True) -> None:
         path = self._resolve_path(path)
         self._create_mpkg_folder(path)
         
-        init_file.create(self.init_content, path)
-        config_file.create(self.experiment_state.master_config, path)
-        model_state_file.create(self.experiment_state.model, path)
-        loss_figure_file.create(self.experiment_state.loss_log, path)
-        metrics_file.create(self.experiment_state.metrics_result, path)
-        model_plot.create(self.experiment_state.model, self.experiment_state.datamodule, NUM_PLOT, path)
+        if verbose:
+            print("saving mpkg...")
+        
+        marker_file.save(getattr(self, "marker_content", None), path)
+        config_file.save(self.experiment_state.master_config, path)
+        model_state_file.save(self.experiment_state.model, path)
+        loss_figure_file.save(self.experiment_state.loss_log, path)
+        metrics_file.save(self.experiment_state.metrics_result, path)
+        model_plot.save(self.experiment_state.model, self.experiment_state.datamodule, path)
+        
+        if verbose:
+            print(f"mpkg saved to {path}")
         return
         
     ### private functions
@@ -64,14 +73,14 @@ class SaveService():
 
 
 
-class init_file():
+class marker_file():
     
     @staticmethod
-    def create(init_content:dict, path:Path) -> None:
+    def save(marker_content:dict, path:Path) -> None:
         init_file_path = path / "__mpkg__.py"
         with open(init_file_path, "w") as file:
-            if init_content is not None:
-                for key, value in init_content.items():
+            if marker_content is not None:
+                for key, value in marker_content.items():
                     file.write(f"{key}={repr(value)}\n")
         return
 
@@ -80,7 +89,7 @@ class init_file():
 class config_file():
     
     @staticmethod
-    def create(config:MasterConfig, path:Path) -> None:
+    def save(config:MasterConfig, path:Path) -> None:
         config_file._create_pkl(config, path)
         config_file._create_txt(config, path)
         return
@@ -104,7 +113,7 @@ class config_file():
 class model_state_file():
     
     @staticmethod
-    def create(model:nn.Module, path:Path) -> None:
+    def save(model:nn.Module, path:Path) -> None:
         model_state_path = path / "model.pth"
         torch.save(model.state_dict(), model_state_path)
         return
@@ -114,7 +123,7 @@ class model_state_file():
 class loss_figure_file():
     
     @staticmethod
-    def create(loss_log:dict[str, list], path:Path) -> None:
+    def save(loss_log:dict[str, list], path:Path) -> None:
         plot_timeseries(
             loss_log.get("train"), loss_log.get("validation"),
             labels = ["train loss", "validation loss"],
@@ -134,7 +143,7 @@ class loss_figure_file():
 class metrics_file():
     
     @staticmethod
-    def create(metrics_result:dict[str, dict], path:Path) -> None:
+    def save(metrics_result:dict[str, dict], path:Path) -> None:
         metrics_file_path = path / "metrics.json"
         with open(metrics_file_path, 'w', encoding='utf-8') as file:
             json.dump(metrics_result, file, indent=4)
@@ -145,8 +154,9 @@ class metrics_file():
 class model_plot():
     
     @staticmethod
-    def create(model:nn.Module, datamodule:DataModule, num_plot:int, path:Path) -> None:
+    def save(model:nn.Module, datamodule:DataModule, path:Path, num_plot:int=None) -> None:
         folder_path = model_plot._create_folder(path)
+        num_plot = model_plot._resolve_num_plot(num_plot)
         model_plot._create_plot(model, datamodule, num_plot, folder_path)
         return
     
@@ -155,6 +165,12 @@ class model_plot():
         folder_path = path / "model_plot"
         os.makedirs(name=folder_path, exist_ok=True)
         return folder_path
+    
+    @staticmethod
+    def _resolve_num_plot(num_plot:int) -> int:
+        if num_plot is None:
+            num_plot = NUM_PLOT
+        return num_plot
     
     @staticmethod
     def _create_plot(model:nn.Module, datamodule:DataModule, num_plot:int, path:Path) -> None:

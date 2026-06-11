@@ -9,6 +9,8 @@ from .master_config import (
     MetricsConfig,
 )
 
+from modules.device_resolve import get_optimal_device
+
 from .dataset.datamodule import DataModule, get_datamodule
 from .model.model_control import get_model
 
@@ -46,10 +48,10 @@ class ExperimentStateFactory():
         return get_datamodule(dataset_config)
     
     def _get_model(self, model_config:ModelConfig) -> nn.Module:
-        return get_model(model_config)
+        return get_model(model_config).to(get_optimal_device())
     
     def _init_loss_log(self) -> dict[str, list[float]]:
         return {"train": [], "validation": []}
     
     def _init_metrics_result(self, metrics_config:MetricsConfig, dataset_config:DatasetConfig) -> dict[str, dict]:
-        pass
+        return {}

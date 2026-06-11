@@ -11,7 +11,8 @@ from torch import nn, Tensor
 from modules.device_resolve import get_model_device
 from core.trainer.trainer import Trainer
 from core.metrics.metrics import MetricsCalculator
-from core.saving.saving import SaverLoader
+from core.storage.save import SaveService
+from core.storage.load import LoadService
 
 from .master_config import MasterConfig
 from .schema import ExperimentStateFactory
@@ -33,16 +34,19 @@ class Experiment():
     ### public functions
     
     def save(self, path:Path=None) -> None:
-        saver = SaverLoader(self.experiment_state)
-        saver.put_in_init(
+        save_service = SaveService(self.experiment_state)
+        save_service.put_in_marker(
             experiment_id = self.experiment_id,
             random_seed = self.random_seed,
             determinism = self.determinism,
         )
-        saver.save(path)
+        save_service.save(path)
         return
     
     def load(self, path:Path) -> None:
+        load_service = LoadService()
+        self.experiment_state = load_service.load(path)
+        self.__dict__.update(load_service.get_marker_content())
         return
     
     def train_model(self) -> nn.Module:
