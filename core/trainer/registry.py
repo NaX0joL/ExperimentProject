@@ -12,10 +12,10 @@ OPTIMIZER_REGISTRY: dict[str, optim.Optimizer] = {
 
 
 CRITERION_REGISTRY: dict[str, nn.Module] = {
-    "MSE": nn.MSELoss,
-    "MAE": nn.L1Loss,
-    "Huber": nn.HuberLoss,
-    "CrossEntropy": nn.CrossEntropyLoss,
+    "mse": nn.MSELoss,
+    "mae": nn.L1Loss,
+    "huber": nn.HuberLoss,
+    "cross_entropy": nn.CrossEntropyLoss,
 }
 
 

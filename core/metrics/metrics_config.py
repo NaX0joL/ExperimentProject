@@ -14,8 +14,8 @@ class MetricsConfig:
     f_score_threshold: float
     
     @classmethod
-    def default(self):
-        return self(
+    def default(cls, **modified_parameter):
+        metrics_config = cls(
             task_type = "regression",
             tolerance = 2,
             
@@ -25,3 +25,7 @@ class MetricsConfig:
             f_score_beta = 1,
             f_score_threshold = 0.5,
         )
+        for name, value in modified_parameter.items():
+            if hasattr(metrics_config, name):
+                setattr(metrics_config, name, value)
+        return metrics_config

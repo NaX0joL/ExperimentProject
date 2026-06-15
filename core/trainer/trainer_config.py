@@ -34,8 +34,8 @@ class TrainerConfig(ABSTRACT_Config):
     loss_coefficients: dict[str, float] = field(default_factory=dict)
     
     @classmethod
-    def default(self):
-        return self(
+    def default(cls, **modified_parameter):
+        trainer_config = cls(
             train_epochs = 100,
             learning_rate = 1e-4,
             
@@ -47,8 +47,8 @@ class TrainerConfig(ABSTRACT_Config):
             weight_decay = 1e-4,
             grad_clip_max_norm = 1.0,
             
-            optimizer_name = 'adamw',
-            criterion_name = 'MAE',
+            optimizer_name = "adamw",
+            criterion_name = "mae",
             
             use_best_model = True,
             
@@ -56,3 +56,7 @@ class TrainerConfig(ABSTRACT_Config):
                 "base_loss": 1,
             },
         )
+        for name, value in modified_parameter.items():
+            if hasattr(trainer_config, name):
+                setattr(trainer_config, name, value)
+        return trainer_config

@@ -18,11 +18,15 @@ class RawGetterConfig(ABSTRACT_Config):
     task_type: str = "classification"
     
     @classmethod
-    def default(self) -> RawGetterConfig:
-        return self(
+    def default(cls, **modified_parameter) -> RawGetterConfig:
+        raw_getter_config = cls(
             variant_name=None,
             sub_dataset_name="FordA",
         )
+        for name, value in modified_parameter.items():
+            if hasattr(raw_getter_config, name):
+                setattr(raw_getter_config, name, value)
+        return raw_getter_config
 
 
 

@@ -22,12 +22,18 @@ class DatasetConfig:
         return
  
     @classmethod
-    def default(self):
-        dataset_name = "UCR_Anomaly_Detection"
-        return self(
-            batch_size = 16,
-            shuffle = True,
-            drop_last = False,
-            dataset_name = dataset_name,
-            raw_getter_config = DATASET_REGISTRY[dataset_name].config_class.default(),
+    def default(cls, **modified_parameter):
+        context = {
+            "batch_size": 16,
+            "shuffle": True,
+            "drop_last": False,
+            "dataset_name": "UCR_Anomaly_Detection",
+        }
+        context.update({k: v for k, v in modified_parameter.items() if k in context})
+        return cls(
+            batch_size = context["batch_size"],
+            shuffle = context["shuffle"],
+            drop_last = context["drop_last"],
+            dataset_name = context["dataset_name"],
+            raw_getter_config = DATASET_REGISTRY[context["dataset_name"]].config_class.default(**modified_parameter),
         )

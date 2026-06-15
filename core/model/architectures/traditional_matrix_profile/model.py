@@ -16,11 +16,14 @@ class ModelConfig(ABSTRACT_Config):
     window_size: int
     
     @classmethod
-    def default(self): 
-        traditional_matrix_profile_config = self(
+    def default(cls, **modified_parameter): 
+        model_config = cls(
             window_size = 100,
         )
-        return traditional_matrix_profile_config
+        for name, value in modified_parameter.items():
+            if hasattr(model_config, name):
+                setattr(model_config, name, value)
+        return model_config
 
 
 

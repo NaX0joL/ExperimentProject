@@ -21,8 +21,8 @@ class ModelConfig(ABSTRACT_Config):
     linear_dim: int
     
     @classmethod
-    def default(self):
-        simple_cnn_config = self(
+    def default(cls, **modified_parameter):
+        model_config = cls(
             in_channels = [64, 128, 256, 512],
             kernel_sizes = [3, 3, 3, 3],
             paddings = [1, 1, 1, 1],
@@ -30,7 +30,10 @@ class ModelConfig(ABSTRACT_Config):
             linear_n_layer = 1,
             linear_dim = 1000,
         )
-        return simple_cnn_config
+        for name, value in modified_parameter.items():
+            if hasattr(model_config, name):
+                setattr(model_config, name, value)
+        return model_config
 
 
 

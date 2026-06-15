@@ -44,7 +44,7 @@ class ModelConfig(ABSTRACT_Config):
     use_revin: bool = False
     use_affine: bool = False
     use_subtract_last: bool = False
-    use_positional_encoding: bool = False
+    use_positional_encoding: bool = True
     decomposition: int = 0
     kernel_size: int = 25
     head_type: str = 'flatten'
@@ -53,8 +53,8 @@ class ModelConfig(ABSTRACT_Config):
     res_attention: bool = True
     
     @classmethod
-    def default(self):
-        proposed_model_config = self(
+    def default(cls, **modified_parameter):
+        proposed_model_config = cls(
             seq_len = 1000,
             pred_len = 1000,
             patch_len = 50,
@@ -79,6 +79,9 @@ class ModelConfig(ABSTRACT_Config):
             
             use_pre_norm = False,
         )
+        for name, value in modified_parameter.items():
+            if hasattr(proposed_model_config, name):
+                setattr(proposed_model_config, name, value)
         return proposed_model_config
 
 
