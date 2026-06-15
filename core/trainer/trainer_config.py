@@ -18,6 +18,7 @@ class TrainerConfig(ABSTRACT_Config):
     train_epochs: int
     learning_rate: float
     
+    use_scheduler: bool
     max_learning_rate: float
     percentage_start: float
     div_factor: float 
@@ -39,10 +40,11 @@ class TrainerConfig(ABSTRACT_Config):
             train_epochs = 100,
             learning_rate = 1e-4,
             
+            use_scheduler = False,
             max_learning_rate = 1e-3,
             percentage_start = 0.3,
-            div_factor = 25,
-            final_div_factor = 1e4,
+            div_factor = 10,
+            final_div_factor = 1e2,
             
             weight_decay = 1e-4,
             grad_clip_max_norm = 1.0,
@@ -54,6 +56,7 @@ class TrainerConfig(ABSTRACT_Config):
             
             loss_coefficients = {
                 "base_loss": 1,
+                "weighted_mse_loss": 0,
             },
         )
         for name, value in modified_parameter.items():

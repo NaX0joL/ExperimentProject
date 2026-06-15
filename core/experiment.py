@@ -7,6 +7,7 @@ import numpy as np
 
 import torch
 from torch import nn, Tensor
+from torch.utils.data import DataLoader
 
 from modules.device_resolve import get_model_device
 from modules.savefolder import create_savefolder
@@ -22,7 +23,7 @@ from .schema import ExperimentStateFactory
 
 class Experiment():
     
-    def __init__(self, master_config:MasterConfig, experiment_id:str=None, random_seed:int=42, determinism:bool=False) -> None:
+    def __init__(self, master_config:MasterConfig=None, experiment_id:str=None, random_seed:int=None, determinism:bool=False) -> None:
         self.master_config = master_config
         self.experiment_id = experiment_id
         self.random_seed = random_seed
@@ -63,7 +64,7 @@ class Experiment():
         metrics = MetricsCalculator(self.experiment_state)
         metrics.calculate()
         return metrics.get_metrics_result()
-     
+    
     def model_inference(self, input:Tensor) -> Tensor:
         model = self.experiment_state.model
         
@@ -77,9 +78,16 @@ class Experiment():
     ### private functions
     
     def _refresh_basic_settings(self) -> None:
+        self._resolve_master_config(self.master_config)
         self._resolve_experiment_id(self.experiment_id)
         self._set_random_seed(self.random_seed)
         self._switch_determinism(self.determinism)
+        return
+    
+    def _resolve_master_config(self, master_config:MasterConfig) -> None:
+        if master_config is None:
+            master_config = MasterConfig.default()
+        self.master_config = master_config
         return
     
     def _resolve_experiment_id(self, experiment_id:str) -> None:
@@ -90,6 +98,8 @@ class Experiment():
         return
     
     def _set_random_seed(self, random_seed:int) -> None:
+        if random_seed is None:
+            random_seed = random.randint(0, 2**31 - 1)
         os.environ['PYTHONHASHSEED'] = str(random_seed)
         random.seed(random_seed)
         np.random.seed(random_seed)

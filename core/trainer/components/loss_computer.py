@@ -37,7 +37,8 @@ class LossComputer():
                 cls = LOSS_REGISTRY[name](self.trainer_components.criterion)
                 coeff = self.trainer_config.loss_coefficients[name]
                 
-                self.loss_queue.append((cls, coeff))
+                if coeff != 0:
+                    self.loss_queue.append((cls, coeff))
         
         return
 
@@ -54,6 +55,19 @@ class BaseLoss(ABSTRACT_Loss):
 
 
 
+class WeightedMSELoss(ABSTRACT_Loss):
+    def __init__(self, criterion):
+        self.pos_weight = 25.0
+        return
+    
+    def forward(self, x: Tensor, y: Tensor) -> Tensor:
+        weight = 1.0 + (self.pos_weight - 1.0) * y  # y is the 0/1 label
+        squared_error = (x - y) ** 2
+        return (weight * squared_error).mean()
+
+
+
 LOSS_REGISTRY = {
     "base_loss": BaseLoss,
+    "weighted_mse_loss": WeightedMSELoss,
 }

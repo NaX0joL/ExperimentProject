@@ -54,17 +54,24 @@ class TrainerComponentsFactory():
         return CRITERION_REGISTRY[trainer_config.criterion_name]()
     
     def _build_scheduler(self, trainer_config:TrainerConfig, optimizer:optim.Optimizer, datamodule:DataModule):
-        return lr_scheduler.OneCycleLR(
-            optimizer = optimizer,
-            steps_per_epoch = len(datamodule.train_dataloader),
-            epochs = trainer_config.train_epochs,
-            pct_start = trainer_config.percentage_start,
-            max_lr = trainer_config.max_learning_rate,
-            cycle_momentum = False if trainer_config.optimizer_name == "adamw" else True,
-            #anneal_strategy = 'cos',
-            #div_factor = self.config.div_factor,
-            #final_div_factor = self.config.final_div_factor,
-        )
+        if trainer_config.use_scheduler:
+            return lr_scheduler.OneCycleLR(
+                optimizer = optimizer,
+                steps_per_epoch = len(datamodule.train_dataloader),
+                epochs = trainer_config.train_epochs,
+                pct_start = trainer_config.percentage_start,
+                max_lr = trainer_config.max_learning_rate,
+                cycle_momentum = False if trainer_config.optimizer_name == "adamw" else True,
+                anneal_strategy = 'cos',
+                div_factor = trainer_config.div_factor,
+                final_div_factor = trainer_config.final_div_factor,
+            )
+            
+        else:
+            return lr_scheduler.LambdaLR(
+                optimizer = optimizer, 
+                lr_lambda = lambda epoch: 1.0,
+            )
 
 
 

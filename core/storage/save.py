@@ -57,10 +57,8 @@ class SaveService():
     
     def _resolve_path(self, path:Path) -> Path:
         if path is None:
-            path = SAVE_DIR / "tmp" / self._generate_tmp_mpkg_name() 
-        else:
-            path = SAVE_DIR / path 
-        return path
+            path = SAVE_DIR / "tmp" / self._generate_tmp_mpkg_name()
+        return Path(path)
     
     def _generate_tmp_mpkg_name(self) -> str:
         current_time = datetime.now().strftime("%Y_%m_%d-%H%M%S")

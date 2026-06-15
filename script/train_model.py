@@ -18,6 +18,11 @@ from core.master_config import (
 from core.experiment import Experiment
 from core.dataset.registry import DATASET_REGISTRY
 from core.model.registry import ARCHITECTURE_REGISTRY
+from modules.colored_print import print_alternate_color, print_colored
+
+
+
+SAVE_DIR = Path("savefolder/mpkg")
 
 
 
@@ -87,7 +92,7 @@ class TrainerConfig_PRESET:
     @staticmethod
     def get() -> TrainerConfig:
         trainer_config = TrainerConfig.default(
-            train_epochs = 2,
+            train_epochs = 300,
             learning_rate = 1e-4,
             
             max_learning_rate = 1e-3,
@@ -99,12 +104,13 @@ class TrainerConfig_PRESET:
             grad_clip_max_norm = 1.0,
             
             optimizer_name = "adamw",
-            criterion_name = "mae",
+            criterion_name = "huber",
             
             use_best_model = True,
             
             loss_coefficients = {
                 "base_loss": 1,
+                "weighted_mse_loss": 0,
             },
         )
         return trainer_config
@@ -160,7 +166,7 @@ class ModelConfig_PRESET:
                 d_layers_num = 1,
                 dec_in_feature = 1,
                 
-                n_heads_num = 1,
+                n_heads_num = 4,
                 n_normal_heads = 0,
                 n_mp_attn_heads = 0,
                 qk_weight_share = False,
@@ -198,7 +204,7 @@ class TrainingScript:
         if groups is None:
             groups = GROUP_PRESET.get(dataset_config.dataset_name)
         
-        models_folder_path = Path(f"{save_path}/{dataset_config.dataset_name}")
+        models_folder_path = SAVE_DIR / save_path
         os.makedirs(name=models_folder_path, exist_ok=False)
         
         for group in groups:
@@ -212,13 +218,87 @@ class TrainingScript:
                 trainer_config,
             )
             
-            exp_id = f"mpkg-{base_id}-{dataset_config.dataset_name}-{group}"
+            exp_id = f"{base_id}-{dataset_config.dataset_name}-{group}"
             exp = Experiment(master_config, experiment_id=exp_id)
             
+            print_colored(f"== STARTED TRAINING MODEL {exp_id} == ".upper(), color="red")
             exp.train_model()
             exp.compute_metrics()
-            exp.save(f"{save_path}/{exp_id}")
+            final_save_path = models_folder_path / f"mpkg-{exp_id}"
+            exp.save(final_save_path)
             
+        return
+    
+    @staticmethod
+    def train_proposed_model_on_tsb_ad_u() -> None:
+        metrics_config = MetricsConfig_PRESET.get()
+        trainer_config = TrainerConfig_PRESET.get()
+        model_config = ModelConfig_PRESET.Proposed_Model.get()
+        dataset_config = DatasetConfig_PRESET.TSB_AD_U.get()
+        
+        base_id = f"proposed_model-TSB_AD_U"
+        save_path = Path("tmp") / base_id
+        
+        # quick change
+        model_config.architecture_config.seq_len = 200
+        model_config.architecture_config.pred_len = 200
+        model_config.architecture_config.patch_len = 10
+        model_config.architecture_config.stride = 1
+                
+        model_config.architecture_config.e_layers_num = 1
+        model_config.architecture_config.enc_in_feature = 1
+        model_config.architecture_config.d_layers_num = 1
+        model_config.architecture_config.dec_in_feature = 1
+                
+        model_config.architecture_config.n_heads_num = 4
+        model_config.architecture_config.n_normal_heads = 4
+        model_config.architecture_config.n_mp_attn_heads = 0
+        model_config.architecture_config.qk_weight_share = False
+        
+        TrainingScript.train_on_all_groups(
+            metrics_config = metrics_config,
+            trainer_config = trainer_config,
+            model_config = model_config,
+            dataset_config = dataset_config,
+            base_id = base_id,
+            save_path = save_path,
+        )
+        return
+    
+    @staticmethod
+    def train_proposed_model_on_ucr_anomaly_detection() -> None:
+        metrics_config = MetricsConfig_PRESET.get()
+        trainer_config = TrainerConfig_PRESET.get()
+        model_config = ModelConfig_PRESET.Proposed_Model.get()
+        dataset_config = DatasetConfig_PRESET.UCR_Anomaly_Detection.get()
+        
+        base_id = f"proposed_model-UCR_Anomaly_Detection"
+        save_path = Path("tmp") / base_id
+        
+        # quick change
+        model_config.architecture_config.seq_len = 1000
+        model_config.architecture_config.pred_len = 1000
+        model_config.architecture_config.patch_len = 50
+        model_config.architecture_config.stride = 1
+                
+        model_config.architecture_config.e_layers_num = 1
+        model_config.architecture_config.enc_in_feature = 1
+        model_config.architecture_config.d_layers_num = 1
+        model_config.architecture_config.dec_in_feature = 1
+                
+        model_config.architecture_config.n_heads_num = 4
+        model_config.architecture_config.n_normal_heads = 4
+        model_config.architecture_config.n_mp_attn_heads = 0
+        model_config.architecture_config.qk_weight_share = False
+        
+        TrainingScript.train_on_all_groups(
+            metrics_config = metrics_config,
+            trainer_config = trainer_config,
+            model_config = model_config,
+            dataset_config = dataset_config,
+            base_id = base_id,
+            save_path = save_path,
+        )
         return
 
 
