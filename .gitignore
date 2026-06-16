@@ -22,3 +22,9 @@ mpkg-*/
 **/core/dataset/data/*/plot/
 *.csv
 *.png
+
+# module specific config
+modules/*/config.json
+
+# random things
+sixMonths.png
