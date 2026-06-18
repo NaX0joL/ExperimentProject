@@ -101,7 +101,7 @@ class model_state_file:
         model_state_file._run_model_once(experiment_state.model, experiment_state.datamodule)
         
         model_state_path = path / "model.pth"
-        state = torch.load(model_state_path, weights_only=True)
+        state = torch.load(model_state_path, weights_only=True, map_location=get_model_device(experiment_state.model))
         experiment_state.model.load_state_dict(state)
         
         return experiment_state.model
