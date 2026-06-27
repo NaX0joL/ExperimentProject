@@ -20,6 +20,7 @@ mpkg-*/
 # datasets
 **/core/dataset/data/*/raw/
 **/core/dataset/data/*/plot/
+**/data/
 *.csv
 *.png
 
