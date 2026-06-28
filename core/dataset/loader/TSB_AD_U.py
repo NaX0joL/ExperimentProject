@@ -1,7 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 
+from dataclasses import dataclass
 from pathlib import Path
 import pandas as pd
+import numpy as np
 
 from ..schema import Loader, DATA_DIR
 
@@ -10,6 +12,8 @@ from ..schema import Loader, DATA_DIR
 class TSB_AD_U_Loader(Loader):
     NAME = "TSB_AD_U"
     PATH = DATA_DIR / NAME
+    
+    GROUPING_STRATUM = "source_dataset"
     
     @classmethod
     def get_data(cls, parallelized:bool=False) -> pd.DataFrame:
@@ -33,15 +37,23 @@ class TSB_AD_U_Loader(Loader):
     
     @classmethod
     def _make_single_file_rows(cls, index:int, file_path:Path) -> pd.DataFrame:
+        #print(file_path.name)
+        
         series_id = cls._make_series_id(index=index)
         time_series, labels = cls._load_time_series_and_label(file_path)
         
+        n = len(time_series)
+        filename = TSB_AD_U_Filename.parse(file_path.name)
+        splits = filename.make_splits(size=n)
+        group = filename.extract_group(stratum=cls.GROUPING_STRATUM)
+        
         rows = {
             "series_id": series_id,
-            "timestep": range(len(time_series)),
+            "timestep": range(n),
             "value": time_series,
             "label": labels,
-            "split": None,
+            "split": splits,
+            "group": group,
         }
         return pd.DataFrame(rows, columns=cls.COLUMNS)
     
@@ -56,3 +68,40 @@ class TSB_AD_U_Loader(Loader):
         feature = content[0].reset_index(drop=True).squeeze().to_list()
         label = content[1].reset_index(drop=True).squeeze().to_list()
         return feature, label
+
+
+
+@dataclass
+class TSB_AD_U_Filename:
+    data_number: str
+    source_dataset: str
+    domain: str
+    train_interval: tuple[int, int]
+    first_anomaly_index: int
+    
+    @classmethod
+    def parse(cls, filename:str) -> "TSB_AD_U_Filename":
+        format_removed = filename.split(".")[0]
+        parts = format_removed.split("_")
+        
+        instance = cls(
+            data_number = parts[0],
+            source_dataset = parts[1],
+            domain = parts[4],
+            train_interval = (0, int(parts[6]) - 1),
+            first_anomaly_index = int(parts[8]) - 1,
+        )
+        return instance
+    
+    def make_splits(self, size:int) -> np.ndarray:
+        splits = np.full(size, "test", dtype=object)
+        start, end = self.train_interval
+        splits[start:end + 1] = "train"
+        return splits
+    
+    def extract_group(self, stratum:str) -> str:
+        if hasattr(self, stratum):
+            group = getattr(self, stratum)
+        else:
+            raise KeyError(f"TSB_AD_U_Filename Error! invalid stratum: {stratum}")
+        return group

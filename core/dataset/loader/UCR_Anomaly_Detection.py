@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import re
 
 from ..schema import Loader, DATA_DIR
 
@@ -40,13 +41,16 @@ class UCR_Anomaly_Detection_Loader(Loader):
     
     @classmethod
     def _make_single_file_rows(cls, index:int, file_path:Path) -> pd.DataFrame:
+        # print(file_path.name)
+        
         series_id = cls._make_series_id(index=index)
         time_series = cls._load_time_series(index=index, file_path=file_path)
         
-        filename = UCR_Filename.parse(file_path.name)
         n = len(time_series)
+        filename = UCR_Anomaly_Detection_Filename.parse(file_path.name)
         labels = filename.make_labels(size=n)
         splits = filename.make_splits(size=n)
+        group = filename.extract_group()
         
         rows = {
             "series_id": series_id,
@@ -54,6 +58,7 @@ class UCR_Anomaly_Detection_Loader(Loader):
             "value": time_series,
             "label": labels,
             "split": splits,
+            "group": group,
         }
         return pd.DataFrame(rows, columns=cls.COLUMNS)
     
@@ -86,14 +91,14 @@ class UCR_Anomaly_Detection_Loader(Loader):
 
 
 @dataclass
-class UCR_Filename:
+class UCR_Anomaly_Detection_Filename:
     data_number: str
     mnemonic_name: str
     train_interval: tuple[int, int]
     anomaly_interval: tuple[int, int]
     
     @classmethod
-    def parse(cls, filename:str) -> "UCR_Filename":
+    def parse(cls, filename:str) -> "UCR_Anomaly_Detection_Filename":
         format_removed = filename.split(".")[0]
         parts = format_removed.split("_")
         
@@ -116,4 +121,47 @@ class UCR_Filename:
         start, end = self.train_interval
         splits[start:end + 1] = "train"
         return splits
+    
+    def extract_group(self) -> str:
+        # manual grouping through keywords
+        KEYWORD_GROUP_MAP = {
+            # multi-file groups (specific first)
+            "gaitHunt":     "gaitHunt",             # before "gait"
+            "gait":         "gait",
+            "tiltAPB":      "tiltAPB",              # before "tilt"
+            "tilt12":       "tilttable",            # tilt12744, tilt12754, tilt12755
+            "Tkeep":        "TkeepMARS",            # TkeepFirst/Second/Third/Forth/Fifth
+            "ltstdbs":      "ltstdbs",              # ltstdbs30791AI/AS/ES
+            "qtdbSel":      "qtdbSel",              # qtdbSel1005V, qtdbSel100MLII
+            "s20101":       "s20101",               # s20101m, s20101mML
+            "CHARIS":       "CHARIS",               # CHARISfive, CHARISten
+            "mit":          "mitlongtermecg",       # mit14046, mit14134, mit14157
+
+            # singletons - included for explicitness
+            "sddb":                     "sddb",
+            "BIDMC":                    "BIDMC",
+            "CIMIS44AirTemperature":    "AirTemperature",
+            "ECG":                      "ECG",
+            "GP711MarkerLFM5z":         "Marker",
+            "InternalBleeding":         "InternalBleeding",
+            "Lab2Cmac":                 "Lab2Cmac",
+            "MesoplodonDensirostris":   "Mesoplodon",
+            "PowerDemand":              "PowerDemand",
+            "WalkingAceleration":       "WalkingAceleration",
+            "apneaecg":                 "apneaecg",
+            "insectEPG":                "insectEPG",
+            "park3m":                   "park3m",
+            "resperation":              "resperation",
+            "sel840mECG":               "sel840mECG",
+            "Fantasia":                 "Fantasia",
+            "Italianpowerdemand":       "Italianpowerdemand",
+            "STAFFIIIDatabase":         "STAFFIIIdb",
+            "taichidbS0715Master":      "taichidb",
+            "weallwalk":                "weallwalk",
+        }
+        for keyword, group in KEYWORD_GROUP_MAP.items():
+            if keyword in self.mnemonic_name:
+                group = group
+                break
         
+        return group
