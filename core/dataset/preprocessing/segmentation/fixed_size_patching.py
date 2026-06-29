@@ -42,7 +42,11 @@ class FixedSizePatching(Segmenter):
         if len(anomaly_positions) == 0:
             return None
 
-        patch_indices = np.unique(anomaly_positions // self.patch_size)
+        patch_indices = self._calculate_valid_patch_indices(anomaly_positions, len(values))
+        
+        if len(patch_indices) == 0:
+            return None
+    
         value_windows = self._build_windows(values, patch_indices)
         label_windows = self._build_windows(labels, patch_indices)
         
@@ -59,6 +63,12 @@ class FixedSizePatching(Segmenter):
         values = series["value"].to_numpy()
         labels = series["label"].to_numpy()
         return values, labels
+    
+    def _calculate_valid_patch_indices(self, anomaly_positions:np.ndarray, series_size:int) -> np.ndarray:
+        patch_indices = np.unique(anomaly_positions // self.patch_size)
+        max_complete_patch_idx = series_size // self.patch_size
+        patch_indices = patch_indices[patch_indices < max_complete_patch_idx]
+        return patch_indices
     
     def _build_windows(self, array:np.ndarray, patch_indices:np.ndarray) -> np.ndarray:
         windows = np.stack([array[i*self.patch_size : (i+1)*self.patch_size] for i in patch_indices])

@@ -5,15 +5,24 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from ..schema import Loader, DATA_DIR
+from ...schema import Loader, DATA_DIR
 
 
 
 class TSB_AD_U_Loader(Loader):
     NAME = "TSB_AD_U"
-    PATH = DATA_DIR / NAME
+    PATH = DATA_DIR / NAME / "source_data"
+    COLUMNS = [
+        "series_id",
+        "timestep",
+        "value",
+        "label",
+        "split",
+        "source",
+        "domain",
+    ]
     
-    GROUPING_STRATUM = "source_dataset"
+    DEFAULT_GROUPING_STRATUM = "source_dataset"
     
     @classmethod
     def load_data(cls, parallelized:bool=False) -> pd.DataFrame:
@@ -45,7 +54,6 @@ class TSB_AD_U_Loader(Loader):
         n = len(time_series)
         filename = TSB_AD_U_Filename.parse(file_path.name)
         splits = filename.make_splits(size=n)
-        group = filename.extract_group(stratum=cls.GROUPING_STRATUM)
         
         rows = {
             "series_id": series_id,
@@ -53,7 +61,8 @@ class TSB_AD_U_Loader(Loader):
             "value": time_series,
             "label": labels,
             "split": splits,
-            "group": group,
+            "source": filename.source_dataset,
+            "domain": filename.domain,
         }
         return pd.DataFrame(rows, columns=cls.COLUMNS)
     

@@ -14,14 +14,14 @@ class Normalization(Transformer):
     def transform_data(self, data_segments:pd.DataFrame) -> pd.DataFrame:
         for column in self.transformed_columns:
             data_segments[column] = self._normalize_column(data_segments[column])
-        return
+        return data_segments
     
     # min-max normalization
-    def _normalize_column(self, segment_column:pd.Series[list], eps:float=1e-8) -> None:
+    def _normalize_column(self, segment_column:pd.Series, eps:float=1e-8) -> None:
         matrix = np.array(segment_column.tolist())
         
         row_mins = matrix.min(axis=1, keepdims=True)
         row_maxs = matrix.max(axis=1, keepdims=True)
         
         normed_matrix = (matrix - row_mins) / (row_maxs - row_mins + eps)
-        return normed_matrix
+        return normed_matrix.tolist()

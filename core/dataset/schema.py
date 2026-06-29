@@ -9,15 +9,6 @@ DATA_DIR = Path("data")
 
 class Loader(ABC):
     
-    COLUMNS = [
-        "series_id", 
-        "timestep", 
-        "value", 
-        "label", 
-        "split", 
-        "group",
-    ]
-    
     @abstractmethod
     def load_data(*args, **kwargs):
         pass

@@ -7,13 +7,21 @@ import pandas as pd
 import numpy as np
 import re
 
-from ..schema import Loader, DATA_DIR
+from ...schema import Loader, DATA_DIR
 
 
 
 class UCR_Anomaly_Detection_Loader(Loader):
     NAME = "UCR_Anomaly_Detection"
-    PATH = DATA_DIR / NAME
+    PATH = DATA_DIR / NAME / "source_data"
+    COLUMNS = [
+        "series_id",
+        "timestep",
+        "value",
+        "label",
+        "split",
+        "mnemonic",
+    ]
     
     SPACE_DELIMITED_INDEX = {
         204, 205, 206, 207, 208, 225, 226, 242, 243     # for some reason, files with these numbers has multiple spaces delimiter instead of \n
@@ -50,7 +58,7 @@ class UCR_Anomaly_Detection_Loader(Loader):
         filename = UCR_Anomaly_Detection_Filename.parse(file_path.name)
         labels = filename.make_labels(size=n)
         splits = filename.make_splits(size=n)
-        group = filename.extract_group()
+        mnemonic = filename.extract_normalized_mnemonic()
         
         rows = {
             "series_id": series_id,
@@ -58,7 +66,7 @@ class UCR_Anomaly_Detection_Loader(Loader):
             "value": time_series,
             "label": labels,
             "split": splits,
-            "group": group,
+            "mnemonic": mnemonic,
         }
         return pd.DataFrame(rows, columns=cls.COLUMNS)
     
@@ -113,16 +121,16 @@ class UCR_Anomaly_Detection_Filename:
     def make_labels(self, size:int) -> np.ndarray:
         labels = np.zeros(size, dtype=np.int8)
         start, end = self.anomaly_interval
-        labels[start:end + 1] = 1
+        labels[start : end + 1] = 1
         return labels
     
     def make_splits(self, size:int) -> np.ndarray:
         splits = np.full(size, "test", dtype=object)
         start, end = self.train_interval
-        splits[start:end + 1] = "train"
+        splits[start : end + 1] = "train"
         return splits
     
-    def extract_group(self) -> str:
+    def extract_normalized_mnemonic(self) -> str:
         
         # manual grouping through keywords
         KEYWORD_GROUP_MAP = {
@@ -160,9 +168,11 @@ class UCR_Anomaly_Detection_Filename:
             "taichidbS0715Master":      "taichidb",
             "weallwalk":                "weallwalk",
         }
+        
+        normed_mnemonic = None
         for keyword, group in KEYWORD_GROUP_MAP.items():
             if keyword in self.mnemonic_name:
-                group = group
+                normed_mnemonic = group
                 break
         
-        return group
+        return normed_mnemonic
