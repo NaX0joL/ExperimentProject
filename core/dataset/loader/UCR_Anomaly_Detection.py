@@ -20,7 +20,7 @@ class UCR_Anomaly_Detection_Loader(Loader):
     }
     
     @classmethod
-    def get_data(cls, parallelized:bool=False) -> pd.DataFrame:
+    def load_data(cls, parallelized:bool=False) -> pd.DataFrame:
         indexes_and_file_paths = [
             (index, file_path)
             for index, file_path in enumerate(sorted(cls.PATH.iterdir()), start=1)
@@ -123,6 +123,7 @@ class UCR_Anomaly_Detection_Filename:
         return splits
     
     def extract_group(self) -> str:
+        
         # manual grouping through keywords
         KEYWORD_GROUP_MAP = {
             # multi-file groups (specific first)

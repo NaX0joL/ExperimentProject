@@ -8,8 +8,32 @@ DATA_DIR = Path("data")
 
 
 class Loader(ABC):
-    COLUMNS = ["series_id", "timestep", "value", "label", "split", "group"]
+    
+    COLUMNS = [
+        "series_id", 
+        "timestep", 
+        "value", 
+        "label", 
+        "split", 
+        "group",
+    ]
     
     @abstractmethod
-    def get_data(*args, **kwargs):
+    def load_data(*args, **kwargs):
+        pass
+
+
+
+class Segmenter(ABC):
+    
+    @abstractmethod
+    def segment_data(*args, **kwargs):
+        pass
+
+
+
+class Transformer(ABC):
+    
+    @abstractmethod
+    def transform_data(*args, **kwargs):
         pass
