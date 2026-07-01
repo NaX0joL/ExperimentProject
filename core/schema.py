@@ -11,6 +11,7 @@ from .master_config import (
 
 from modules.device_resolve import get_optimal_device
 
+from .dataset.data_server import DataServer
 from .dataset.datamodule import DataModule, get_datamodule
 from .model.model_control import get_model
 
@@ -43,8 +44,12 @@ class ExperimentStateFactory():
         )
     
     ### private functions
-        
+    
+    def _get_data_server(self, dataset_config:DatasetConfig) -> DataServer:
+        return DataServer(dataset_config)
+    
     def _get_datamodule(self, dataset_config:DatasetConfig) -> DataModule:
+        return None
         return get_datamodule(dataset_config)
     
     def _get_model(self, model_config:ModelConfig) -> nn.Module:

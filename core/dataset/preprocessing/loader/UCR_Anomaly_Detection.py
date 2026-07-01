@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import re
 
-from ...schema import Loader, DATA_DIR
+from ..schema import Loader, DATA_DIR
 
 
 

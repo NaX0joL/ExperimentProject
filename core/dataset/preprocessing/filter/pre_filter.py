@@ -8,7 +8,7 @@ class PreFilter():
         self.filter_columns = filter_columns if filter_columns is not None else {}
         return
     
-    def apply(self, data:pd.DataFrame) -> pd.DataFrame:
+    def filter_data(self, data:pd.DataFrame) -> pd.DataFrame:
         filtered = self._filter_by_column(data)
         return filtered
     

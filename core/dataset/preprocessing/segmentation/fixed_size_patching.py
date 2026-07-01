@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from ...schema import Segmenter
+from ..schema import Segmenter
 
 
 

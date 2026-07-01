@@ -29,3 +29,4 @@ modules/*/config.json
 
 # random things
 sixMonths.png
+**/tmp_trash/

@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from ...schema import Loader, DATA_DIR
+from ..schema import Loader, DATA_DIR
 
 
 

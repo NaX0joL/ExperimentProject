@@ -13,6 +13,14 @@ from core.dataset.preprocessing.segmentation.fixed_size_patching import FixedSiz
 
 from core.dataset.preprocessing.transform.normalize import Normalization
 
+from core.dataset.preprocessing.preprocess import Preprocessor, DataPipeline
+from core.dataset.preprocessing.preprocess_config import PreprocessConfig
+
+from core.dataset.data_server import DataServer
+from core.dataset.dataset_config import DatasetConfig
+
+from core.experiment import Experiment
+
 
 
 def main() -> None:
@@ -22,6 +30,31 @@ def main() -> None:
     # TrainingScript.train_proposed_model_on_ucr_anomaly_detection()
     
     start_time = time.time()
+    
+    exp = Experiment(experiment_id="TEST HARI INI!1!1")
+    exp.train_model()
+    exp.save()
+    
+    end_time = time.time()
+    print(end_time - start_time)
+    
+    return
+    
+    # pipeline = DataPipeline.default(dataset="UCR_Anomaly_Detection")
+    # preprocessor = Preprocessor(data_pipeline=pipeline)
+    # preprocessor.get_data()
+    
+    dataset_config = DatasetConfig.default()
+    data_server = DataServer(dataset_config)
+    for datamodule in data_server.serve_datamodule(n_fold=999):
+        for batch in datamodule.train_dataloader:
+            print(batch)
+        break
+    
+    end_time = time.time()
+    print(end_time - start_time)
+    
+    return
     
     tsb_ad_u_df = TSB_AD_U_Loader.load_data(parallelized=True)
     ucr_anomaly_detection_df = UCR_Anomaly_Detection_Loader.load_data(parallelized=True)

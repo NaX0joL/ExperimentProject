@@ -9,6 +9,8 @@ from torch.utils.data import DataLoader
 from core.abstract import ABSTRACT_Trainer
 from core.schema import ExperimentState
 
+from core.dataset.new_datamodule import DataModule
+
 from .registry import OPTIMIZER_REGISTRY, CRITERION_REGISTRY
 from .schema import TrainerComponents, TrainerState, TrainerComponentsFactory, TrainerStateFactory
 from .components.epoch_processor import EpochProcessor
@@ -51,7 +53,13 @@ class Trainer(ABSTRACT_Trainer):
     def get_model(self):
         return self.experiment_state.model
     
-    def fit(self, timer=False) -> None:
+    # def fit(self, n_fold:int=1) -> None:
+    #     for datamodule in self.experiment_state.data_server.serve_datamodule(n_fold=n_fold):
+    #         self.experiment_state.datamodule = datamodule
+    #         self.fit_one_fold(datamodule)
+    #     return
+    
+    def fit(self) -> None:
         self._reset_state()
         self._relink_state_to_services()
         self.checkpoint_manager.reset()

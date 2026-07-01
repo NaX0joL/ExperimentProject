@@ -1,8 +1,10 @@
 import pandas as pd
 
+from ..schema import Grouper
 
 
-class Grouper():
+
+class DataGrouper(Grouper):
     
     def __init__(self, stratum:str) -> None:
         self.stratum = stratum

@@ -7,10 +7,10 @@ import numpy as np
 
 import torch
 from torch import nn, Tensor
-from torch.utils.data import DataLoader
 
 from modules.device_resolve import get_model_device
 from modules.savefolder import create_savefolder
+from core.dataset.data_server import DataServer
 from core.trainer.trainer import Trainer
 from core.metrics.metrics import MetricsCalculator
 from core.storage.save import SaveService
@@ -31,6 +31,7 @@ class Experiment():
         
         self._refresh_basic_settings()
         self._reload_experiment_state()
+        self._start_data_server()
         return
     
     ### public functions
@@ -51,14 +52,27 @@ class Experiment():
         load_service = LoadService()
         self.experiment_state = load_service.load(path)
         self.__dict__.update(load_service.get_marker_content())
+        self._start_data_server()
         return
     
-    def train_model(self) -> nn.Module:
+    def train_model(self, fold_index:int=-1, n_fold:int=1) -> None:
         create_savefolder()
         
-        trainer = Trainer(self.experiment_state)
-        trainer.fit()
-        return trainer.get_model()
+        self.model_list = []
+        #data_server = DataServer(self.master_config.dataset_config)
+        
+        for index, datamodule in enumerate(self.data_server.serve_datamodule(n_fold)):
+            
+            if fold_index != -1 and index != fold_index:
+                continue
+            
+            self.experiment_state.datamodule = datamodule
+            trainer = Trainer(self.experiment_state)
+            trainer.fit()
+            
+            self.model_list.append(trainer.get_model())
+            
+        return
     
     def compute_metrics(self) -> dict[str, dict]:
         metrics = MetricsCalculator(self.experiment_state)
@@ -115,4 +129,8 @@ class Experiment():
     
     def _reload_experiment_state(self) -> None:
         self.experiment_state = ExperimentStateFactory().create(self.master_config)
+        return
+    
+    def _start_data_server(self) -> None:
+        self.data_server = DataServer(self.master_config.dataset_config)
         return
